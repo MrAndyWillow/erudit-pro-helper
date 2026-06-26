@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Эрудит Pro">
-    <title>Помощник Эрудита Pro</title>
+    <title>Эрудит Про Помощник</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -202,8 +202,6 @@
             setLoading(true);
             setError(null);
             
-            // ТЕПЕРЬ ФАЙЛЫ ГРУЗЯТСЯ ЛОКАЛЬНО!
-            // Путь относителен к index.html (файлы должны лежать рядом)
             const dictUrl = dictionaryType === 'nouns' 
               ? './russian_nouns.txt'
               : './russian_words.txt';
@@ -249,7 +247,7 @@
               }
               
               setDictionary(words);
-              setDictionaryType('custom'); // Переводим в кастомный режим
+              setDictionaryType('custom');
               setError(`Успешно загружен свой словарь: ${words.length.toLocaleString('ru-RU')} слов.`);
               setLoading(false);
             };
@@ -375,7 +373,7 @@
                       <GameTile char="Р" className="mr-[2px]" />
                       <GameTile char="У" />
                     </div>
-                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Эрудит Pro</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">Эрудит Про Помощник</h1>
                   </div>
                   <button onClick={() => setShowInstructions(!showInstructions)} className="flex items-center space-x-2 text-sm font-medium text-slate-400 hover:text-blue-400 w-full sm:w-auto justify-center sm:justify-start">
                     <Icons.Info /><span>Правила и Подсказки</span>
@@ -383,8 +381,8 @@
                 </header>
 
                 {showInstructions && (
-                  <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 text-sm sm:text-base text-slate-300 animate-fade-in-down">
-                    <h3 className="font-semibold mb-3 text-white text-lg">Как пользоваться помощником?</h3>
+                  <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 text-sm sm:text-base text-slate-300 animate-fade-in-down space-y-4">
+                    <h3 className="font-semibold text-white text-lg">Как пользоваться помощником?</h3>
                     <div className="grid sm:grid-cols-2 gap-6">
                       <ul className="list-disc list-inside space-y-2">
                         <li><strong>Мои буквы:</strong> Введите буквы, которые есть у вас. Пустая фишка (джокер) = <code className="bg-slate-950 px-1 rounded text-blue-400">*</code>.</li>
@@ -392,10 +390,13 @@
                         <li>Символ <code className="bg-slate-950 px-1 rounded text-blue-400">?</code> в маске = ровно 1 любая буква.</li>
                         <li>Символ <code className="bg-slate-950 px-1 rounded text-blue-400">*</code> в маске = любое количество букв.</li>
                       </ul>
-                      <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
-                        <strong className="block text-white mb-2">Калькулятор очков:</strong>
+                      <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 space-y-2">
+                        <strong className="block text-white">Выбор словаря:</strong>
                         <p className="text-slate-400 text-sm">
-                          Найдите подходящее слово, кликните по нему и настройте множители. Приложение само рассчитает итоговую сумму по правилам "Эрудита" (включая бонус +15 за 7 букв).
+                          <b>Существительные (~50 тыс.)</b> — классический выбор для турниров. Исключает споры о формах и падежах слов.
+                        </p>
+                        <p className="text-slate-400 text-sm">
+                          <b>Все части речи (~100 тыс.)</b> — добавляет глаголы, прилагательные и другие формы для более гибкой и динамичной игры.
                         </p>
                       </div>
                     </div>
@@ -449,13 +450,24 @@
                             onChange={e => {
                                 if (e.target.value !== 'custom') setDictionaryType(e.target.value);
                             }} 
-                            className="w-full pl-4 pr-10 py-3 appearance-none rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                            className="w-full pl-4 pr-10 pt-3 pb-5 appearance-none rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm leading-tight"
                           >
-                            <option value="nouns">Существительные (~50 тыс.)</option>
-                            <option value="full">Все части речи (~100 тыс.)</option>
+                            <option value="nouns">
+                              Существительные (~50 тыс.) 
+                            </option>
+                            <option value="full">
+                              Все части речи (~100 тыс.)
+                            </option>
                             {dictionaryType === 'custom' && <option value="custom">Свой загруженный словарь</option>}
                           </select>
-                          <div className="absolute right-3 top-3.5 text-slate-500 pointer-events-none"><Icons.ChevronDown /></div>
+                          <div className="absolute right-3 top-4 text-slate-500 pointer-events-none"><Icons.ChevronDown /></div>
+                          
+                          {/* Информационные мелкие подписи под селектором */}
+                          <div className="text-[11px] text-slate-400 mt-1 px-1">
+                            {dictionaryType === 'nouns' && "Классические правила: только существительные в ед. числе."}
+                            {dictionaryType === 'full' && "Динамичный режим: глаголы, прилагательные и другие формы."}
+                            {dictionaryType === 'custom' && "Поиск по вашему персональному .txt списку."}
+                          </div>
                         </div>
 
                         {/* Кнопка загрузки своего файла */}
