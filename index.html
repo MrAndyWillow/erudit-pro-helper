@@ -138,9 +138,12 @@
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-[#f8b348]/20 border border-[#f8b348]/30">
-                    <span className="text-[#f8b348] font-bold flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-[#f8b348]"></div> x2 Слово
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[#f8b348] font-bold flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-[#f8b348]"></div> x2 Слово
+                      </span>
+                      <span className="text-[10px] leading-tight text-[#f8b348]/80 mt-0.5">Умножает итог слова на 2</span>
+                    </div>
                     <div className="flex items-center gap-3">
                       <button onClick={() => updateWordMult('x2', -1)} className="p-1.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700"><Icons.Minus /></button>
                       <span className="text-lg font-bold w-4 text-center">{wordMults.x2}</span>
@@ -149,9 +152,12 @@
                   </div>
 
                   <div className="flex items-center justify-between p-3 rounded-lg bg-[#dd5347]/20 border border-[#dd5347]/30">
-                    <span className="text-[#dd5347] font-bold flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-[#dd5347]"></div> x3 Слово
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[#dd5347] font-bold flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-[#dd5347]"></div> x3 Слово
+                      </span>
+                      <span className="text-[10px] leading-tight text-[#dd5347]/80 mt-0.5">Умножает итог слова на 3</span>
+                    </div>
                     <div className="flex items-center gap-3">
                       <button onClick={() => updateWordMult('x3', -1)} className="p-1.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700"><Icons.Minus /></button>
                       <span className="text-lg font-bold w-4 text-center">{wordMults.x3}</span>
@@ -202,16 +208,27 @@
             setLoading(true);
             setError(null);
             
-            const dictUrl = dictionaryType === 'nouns' 
+            const localDictUrl = dictionaryType === 'nouns' 
               ? './russian_nouns.txt'
               : './russian_words.txt';
+              
+            const remoteDictUrl = dictionaryType === 'nouns'
+              ? 'https://raw.githubusercontent.com/Harrix/Russian-Nouns/main/dist/russian_nouns.txt'
+              : 'https://raw.githubusercontent.com/hingston/russian/master/100000-russian-words.txt';
 
-            fetch(dictUrl)
+            fetch(localDictUrl)
               .then(response => {
                 if (!response.ok) {
-                   throw new Error(`Не удалось найти локальный файл: ${dictUrl}`);
+                   throw new Error('Local fallback');
                 }
                 return response.text();
+              })
+              .catch(() => {
+                // Если локального файла нет (например, в предпросмотре) — грузим запасной из сети
+                return fetch(remoteDictUrl).then(res => {
+                  if (!res.ok) throw new Error('Не удалось загрузить ни локальный, ни сетевой словарь.');
+                  return res.text();
+                });
               })
               .then(text => {
                 const words = text.split('\n')
@@ -222,7 +239,7 @@
               })
               .catch(err => {
                  setDictionary(['эрудит', 'игра', 'слова', 'помощник', 'ошибка', 'локальный', 'файл', 'настройка']);
-                 setError(`Ошибка: ${err.message}. Убедитесь, что файлы russian_nouns.txt и russian_words.txt лежат в одной папке с index.html на сервере.`);
+                 setError(`Ошибка: ${err.message} Убедитесь, что вы подключены к интернету или добавили .txt файлы.`);
                  setLoading(false);
               });
           }, [dictionaryType]);
@@ -398,6 +415,21 @@
                         <p className="text-slate-400 text-sm">
                           <b>Все части речи (~100 тыс.)</b> — добавляет глаголы, прилагательные и другие формы для более гибкой и динамичной игры.
                         </p>
+                      </div>
+                    </div>
+                    
+                    {/* Новый блок с объяснением цветных клеток */}
+                    <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-700 mt-4">
+                      <strong className="block text-white mb-2">Подсчет очков на доске (цветные клетки):</strong>
+                      <div className="grid sm:grid-cols-2 gap-4 text-sm text-slate-400">
+                         <div>
+                           <p><span className="text-[#82c94e] font-bold">x2 Буква</span> и <span className="text-[#5db6e6] font-bold">x3 Буква</span></p>
+                           <p className="text-xs mt-1">Удвоители и утроители букв. Умножают очки только той буквы, которая попадает на эту клетку (кликайте под нужными буквами в калькуляторе).</p>
+                         </div>
+                         <div>
+                           <p><span className="text-[#f8b348] font-bold">x2 Слово</span> и <span className="text-[#dd5347] font-bold">x3 Слово</span></p>
+                           <p className="text-xs mt-1">Бонусы за длину. Умножают итоговую сумму <b>всего слова целиком</b>. Добавляйте их плюсиком, если слово пересекает эти клетки на поле.</p>
+                         </div>
                       </div>
                     </div>
                   </div>
