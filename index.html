@@ -32,15 +32,14 @@
     <script type="text/babel" data-presets="react">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // ТОЧНАЯ СТОИМОСТЬ БУКВ СО СКРИНШОТА
         const SCRABBLE_POINTS = {
-          'а': 1, 'и': 1, 'н': 1, 'о': 1, // 1 очко
-          'в': 2, 'г': 2, 'е': 2, 'к': 2, 'л': 2, 'м': 2, 'п': 2, 'р': 2, 'с': 2, 'т': 2, 'у': 2, 'ё': 2, // 2 очка (ё приравнена к е)
-          'б': 3, 'д': 3, 'я': 3, // 3 очка
-          'ж': 5, 'з': 5, 'й': 5, 'х': 5, 'ч': 5, 'ы': 5, 'ь': 5, // 5 очков
-          'ф': 8, 'ц': 8, 'ш': 8, 'щ': 8, 'ю': 8, // 8 очков
-          'э': 10, // 10 очков
-          'ъ': 15  // 15 очков
+          'а': 1, 'и': 1, 'н': 1, 'о': 1,
+          'в': 2, 'г': 2, 'е': 2, 'к': 2, 'л': 2, 'м': 2, 'п': 2, 'р': 2, 'с': 2, 'т': 2, 'у': 2, 'ё': 2,
+          'б': 3, 'д': 3, 'я': 3,
+          'ж': 5, 'з': 5, 'й': 5, 'х': 5, 'ч': 5, 'ы': 5, 'ь': 5,
+          'ф': 8, 'ц': 8, 'ш': 8, 'щ': 8, 'ю': 8,
+          'э': 10,
+          'ъ': 15
         };
 
         const Icons = {
@@ -188,6 +187,7 @@
 
           const [letters, setLetters] = useState('');
           const [mask, setMask] = useState('');
+          const [maskAddsLetters, setMaskAddsLetters] = useState(false); // НОВАЯ ЛОГИКА
           const [minLength, setMinLength] = useState('');
           const [maxLength, setMaxLength] = useState('');
           const [sortBy, setSortBy] = useState('points');
@@ -246,7 +246,7 @@
                        })
                        .then(loadDictionaryFromText)
                        .catch(() => {
-                          setDictionary(['эрудит', 'игра', 'слова', 'очки', 'джокер']);
+                          setDictionary(['эрудит', 'игра', 'слова', 'очки', 'джокер', 'мавзонт', 'завоз']);
                           setError(`Не удалось загрузить словари. Проверьте файлы в папке.`);
                           setLoading(false);
                        });
@@ -307,7 +307,9 @@
 
             const handChars = letters.toLowerCase().replace(/[^а-яё*?\s]/g, '');
             const boardChars = mask.toLowerCase().replace(/[*?\s-]/g, '');
-            const totalAvailableChars = (letters.trim() ? handChars + boardChars : null);
+            
+            // НОВАЯ ЛОГИКА: если галочка снята, то буквы маски НЕ добавляются к доступным!
+            const totalAvailableChars = (letters.trim() ? handChars + (maskAddsLetters ? boardChars : '') : null);
 
             let jokersCount = 0;
             let baseLetterCounts = new Int16Array(33); 
@@ -370,12 +372,12 @@
             });
 
             return filtered;
-          }, [letters, mask, minLength, maxLength, sortBy, dictionary]);
+          }, [letters, mask, minLength, maxLength, sortBy, dictionary, maskAddsLetters]);
 
           useEffect(() => {
             setVisibleCount(50);
             setExpandedWordIdx(null);
-          }, [letters, mask, minLength, maxLength, sortBy]);
+          }, [letters, mask, minLength, maxLength, sortBy, maskAddsLetters]);
 
           const getDictionaryDescription = () => {
              if (dictionaryType === 'nouns') return "Только существительные в им. падеже (~50 тыс.)";
@@ -409,21 +411,21 @@
                     <div className="grid sm:grid-cols-2 gap-6">
                       <ul className="list-disc list-inside space-y-2">
                         <li><strong>Мои буквы:</strong> Ваши буквы с руки. Джокер = <code className="bg-slate-950 px-1 rounded text-blue-400">*</code>.</li>
-                        <li><strong>Маска:</strong> Поиск с учетом доски. Введите известные буквы.</li>
+                        <li><strong>Маска:</strong> Задает, где именно должны стоять буквы. <i>По умолчанию маска ничего не добавляет к вашим фишкам.</i></li>
                         <li>Символ <code className="bg-slate-950 px-1 rounded text-blue-400">?</code> = ровно 1 любая буква.</li>
                         <li>Символ <code className="bg-slate-950 px-1 rounded text-blue-400">*</code> = любое количество букв.</li>
                       </ul>
                       <div className="space-y-4">
                         <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
-                          <strong className="block text-white mb-1">Выбор словаря:</strong>
+                          <strong className="block text-white mb-1">Связь с доской:</strong>
                           <p className="text-slate-400 text-sm">
-                            Используйте <b>Существительные</b> для классических правил. Включайте <b>Словарь 125к</b> или <b>Расширенный</b>, если договорились играть с глаголами и другими частями речи.
+                            Если вы вписали в Маску буквы, которые уже лежат на игровом поле и хотите за них зацепиться — включите галочку <b>«Брать буквы маски с доски»</b>.
                           </p>
                         </div>
                         <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
                           <strong className="block text-white mb-1">Калькулятор и Бонусы:</strong>
                           <p className="text-slate-400 text-sm">
-                            Кликните на найденное слово, чтобы открыть калькулятор.
+                            Кликните на слово.
                             <b>x2/x3 Буква</b> умножает очки конкретной фишки. <b>x2/x3 Слово</b> умножает общую сумму.
                           </p>
                         </div>
@@ -440,15 +442,26 @@
                       
                       <div className="space-y-1.5">
                         <label className="block text-sm font-semibold text-slate-300">Мои буквы</label>
-                        <input type="text" value={letters} onChange={e => setLetters(e.target.value)} placeholder="Например: авпрсло*" className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase placeholder-slate-600 transition-shadow" />
+                        <input type="text" value={letters} onChange={e => setLetters(e.target.value)} placeholder="Например: мавзонт*" className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase placeholder-slate-600 transition-shadow" />
                       </div>
 
                       <div className="space-y-1.5">
                         <label className="block text-sm font-semibold text-slate-300">Маска на доске</label>
-                        <input type="text" value={mask} onChange={e => setMask(e.target.value)} placeholder="Например: к?т или *о*" className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase placeholder-slate-600 transition-shadow" />
+                        <input type="text" value={mask} onChange={e => setMask(e.target.value)} placeholder="Например: *а??з*" className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase placeholder-slate-600 transition-shadow" />
+                        
+                        <label className="flex items-start space-x-2 mt-2 pt-1 cursor-pointer group">
+                          <div className="relative flex items-center justify-center mt-0.5">
+                             <input type="checkbox" checked={maskAddsLetters} onChange={e => setMaskAddsLetters(e.target.checked)} className="peer sr-only" />
+                             <div className="w-4 h-4 rounded border border-slate-600 bg-slate-900 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors"></div>
+                             <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                          </div>
+                          <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors leading-tight">
+                            Брать буквы маски с доски<br/>(считаются как дополнительные бесплатные буквы)
+                          </span>
+                        </label>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4 pt-1">
                         <div className="space-y-1.5">
                           <label className="block text-sm font-semibold text-slate-300">Длина: От</label>
                           <input type="number" value={minLength} onChange={e => setMinLength(e.target.value)} min="1" className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none text-center" />
@@ -530,7 +543,7 @@
                           ) : results.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-center px-4 animate-fade-in-down">
                               <h3 className="text-lg font-medium text-white mb-1">Упс, ничего не найдено</h3>
-                              <p className="text-slate-400 text-sm">Попробуйте использовать джокер (*) или изменить маску.</p>
+                              <p className="text-slate-400 text-sm">Проверьте правильность маски или попробуйте изменить буквы.</p>
                             </div>
                           ) : (
                             <div className="flex flex-col gap-3">
