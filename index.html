@@ -222,8 +222,8 @@
             let primaryUrl, fallbackUrl;
             
             if (dictionaryType === 'nouns') {
-                primaryUrl = './russian_nouns.txt';
-                fallbackUrl = 'https://raw.githubusercontent.com/Harrix/Russian-Nouns/main/dist/russian_nouns.txt';
+                primaryUrl = './russian_words_nouns.txt';
+                fallbackUrl = 'https://raw.githubusercontent.com/Harrix/Russian-Nouns/main/dist/russian_words_nouns.txt';
             } else if (dictionaryType === 'full') {
                 primaryUrl = './russian_words.txt';
                 fallbackUrl = 'https://cdn.jsdelivr.net/gh/danakt/russian-words@master/russian.txt';
@@ -485,7 +485,7 @@
                         <label className="block text-sm font-semibold text-slate-300">База слов</label>
                         <div className="relative">
                           <select value={dictionaryType} onChange={e => setDictionaryType(e.target.value)} className="w-full pl-4 pr-10 py-3 appearance-none rounded-xl bg-slate-950 border border-slate-700 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                            <option value="nouns">Существительные (russian_nouns.txt)</option>
+                            <option value="nouns">Существительные (russian_words_nouns.txt)</option>
                             <option value="125k">Словарь 125к (125k-russian-words.txt)</option>
                             <option value="full">Расширенный (russian_words.txt)</option>
                             {dictionaryType === 'custom' && <option value="custom">Ваш файл</option>}
